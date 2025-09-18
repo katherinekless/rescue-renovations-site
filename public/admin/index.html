@@ -4,26 +4,33 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS</title>
-    <!-- Identity widget (login modal) -->
+    <!-- Identity widget (login) -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <!-- CMS styles (optional) -->
-    <link rel="stylesheet" href="https://unpkg.com/@decapcms/decap-cms@3.1.9/dist/decap-cms.css" />
+    <!-- Optional stylesheet -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@decapcms/decap-cms@3.1.9/dist/decap-cms.css" />
   </head>
   <body style="font-family: system-ui, sans-serif; padding: 16px;">
     <div id="status">Loading CMS…</div>
-
     <script>
       function show(msg) {
         document.getElementById('status').innerHTML =
           "<pre style='white-space:pre-wrap'>" + msg + "</pre>";
       }
 
-      // Load the CMS script, then init when it's DEFINITELY available
-      function loadCMS() {
+      // Try multiple CDNs in order
+      const CMS_SOURCES = [
+        "https://unpkg.com/@decapcms/decap-cms@3.1.9/dist/decap-cms.js",
+        "https://cdn.jsdelivr.net/npm/@decapcms/decap-cms@3.1.9/dist/decap-cms.js",
+        "https://ga.jspm.io/npm:@decapcms/decap-cms@3.1.9/dist/decap-cms.js"
+      ];
+
+      function loadScript(srcs, onload, onfail) {
+        if (!srcs.length) return onfail();
+        const src = srcs[0];
         const s = document.createElement('script');
-        s.src = "https://unpkg.com/@decapcms/decap-cms@3.1.9/dist/decap-cms.js";
-        s.onload = initCMS;              // <-- wait until CMS is defined
-        s.onerror = () => show("Couldn't load Decap/Netlify CMS script.");
+        s.src = src;
+        s.onload = onload;
+        s.onerror = () => loadScript(srcs.slice(1), onload, onfail);
         document.body.appendChild(s);
       }
 
@@ -33,15 +40,13 @@
           if (!res.ok) throw new Error('Cannot load /admin/config.yml (HTTP ' + res.status + ')');
           const txt = await res.text();
           if (!txt.trim()) throw new Error('config.yml is empty');
-
           window.CMS_MANUAL_INIT = true;
-          CMS.init({ config: '/admin/config.yml' });   // CMS is now defined
+          CMS.init({ config: '/admin/config.yml' });
           show('CMS loaded. Click “Login with Netlify Identity”.');
         } catch (e) {
           show('Error booting CMS:\n\n' + (e && e.stack ? e.stack : e));
         }
 
-        // Refresh after login
         if (window.netlifyIdentity) {
           window.netlifyIdentity.on('init', user => {
             if (!user) window.netlifyIdentity.on('login', () => location.reload());
@@ -49,7 +54,9 @@
         }
       }
 
-      loadCMS();
+      loadScript(CMS_SOURCES, initCMS, () => {
+        show("Couldn't load Decap/Netlify CMS script from any CDN.");
+      });
     </script>
   </body>
 </html>
