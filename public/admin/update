@@ -15,3 +15,6 @@
     </script>
   </body>
 </html>
+git add public/admin/index.html
+git commit -m "Add CMS boot script to /admin"
+git push
