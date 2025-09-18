@@ -1,4 +1,49 @@
 backend:
   name: git-gateway
+  branch: main
+
 media_folder: "public/uploads"
 public_folder: "/uploads"
+
+collections:
+  - name: "site"
+    label: "Site Settings"
+    file: "content/site.json"
+    fields:
+      - { name: company, label: Company, widget: string }
+      - { name: phone, label: Phone, widget: string }
+      - { name: tagline, label: Tagline, widget: string }
+      - { name: areas, label: Service Areas, widget: list }
+      - { name: logoDataUri, label: Logo (Data URI), widget: text }
+
+  - name: "services"
+    label: "Services"
+    file: "content/services.json"
+    fields:
+      - { name: services, label: Services, widget: list, fields: [
+          { name: t, label: Title, widget: string },
+          { name: d, label: Description, widget: text },
+          { name: icon, label: Icon, widget: string }
+        ] }
+
+  - name: "packages"
+    label: "Packages"
+    file: "content/packages.json"
+    fields:
+      - { name: packages, label: Packages, widget: list, fields: [
+          { name: name, label: Name, widget: string },
+          { name: price, label: Price, widget: string },
+          { name: features, label: Features, widget: list },
+          { name: cta, label: Call to Action, widget: string }
+        ] }
+
+  - name: "projects"
+    label: "Projects"
+    file: "content/projects.json"
+    fields:
+      - { name: projects, label: Projects, widget: list, fields: [
+          { name: id, label: ID, widget: number },
+          { name: title, label: Title, widget: string },
+          { name: tag, label: Category, widget: string },
+          { name: cover, label: Image URL, widget: string }
+        ] }
