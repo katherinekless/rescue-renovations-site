@@ -4,59 +4,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS</title>
-    <!-- Identity widget (login) -->
+    <!-- Netlify Identity (login modal) -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <!-- Optional stylesheet -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@decapcms/decap-cms@3.1.9/dist/decap-cms.css" />
+    <!-- Use locally served CMS bundle (copied at build) -->
+    <link rel="stylesheet" href="/admin/vendor/decap-cms.css" />
   </head>
   <body style="font-family: system-ui, sans-serif; padding: 16px;">
     <div id="status">Loading CMS…</div>
+
+    <script src="/admin/vendor/decap-cms.js"></script>
     <script>
-      function show(msg) {
-        document.getElementById('status').innerHTML =
-          "<pre style='white-space:pre-wrap'>" + msg + "</pre>";
-      }
+      function show(m){ document.getElementById('status').innerHTML = "<pre>"+m+"</pre>"; }
 
-      // Try multiple CDNs in order
-      const CMS_SOURCES = [
-        "https://unpkg.com/@decapcms/decap-cms@3.1.9/dist/decap-cms.js",
-        "https://cdn.jsdelivr.net/npm/@decapcms/decap-cms@3.1.9/dist/decap-cms.js",
-        "https://ga.jspm.io/npm:@decapcms/decap-cms@3.1.9/dist/decap-cms.js"
-      ];
-
-      function loadScript(srcs, onload, onfail) {
-        if (!srcs.length) return onfail();
-        const src = srcs[0];
-        const s = document.createElement('script');
-        s.src = src;
-        s.onload = onload;
-        s.onerror = () => loadScript(srcs.slice(1), onload, onfail);
-        document.body.appendChild(s);
-      }
-
-      async function initCMS() {
+      (async () => {
         try {
           const res = await fetch('/admin/config.yml', { cache: 'no-store' });
           if (!res.ok) throw new Error('Cannot load /admin/config.yml (HTTP ' + res.status + ')');
           const txt = await res.text();
           if (!txt.trim()) throw new Error('config.yml is empty');
+
           window.CMS_MANUAL_INIT = true;
           CMS.init({ config: '/admin/config.yml' });
           show('CMS loaded. Click “Login with Netlify Identity”.');
         } catch (e) {
-          show('Error booting CMS:\n\n' + (e && e.stack ? e.stack : e));
+          show('Error booting CMS:\\n\\n' + (e && e.stack ? e.stack : e));
         }
 
         if (window.netlifyIdentity) {
-          window.netlifyIdentity.on('init', user => {
+          window.netlifyIdentity.on('init', (user) => {
             if (!user) window.netlifyIdentity.on('login', () => location.reload());
           });
         }
-      }
-
-      loadScript(CMS_SOURCES, initCMS, () => {
-        show("Couldn't load Decap/Netlify CMS script from any CDN.");
-      });
+      })();
     </script>
   </body>
 </html>
