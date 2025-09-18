@@ -47,3 +47,6 @@ collections:
           { name: tag, label: Category, widget: string },
           { name: cover, label: Image URL, widget: string }
         ] }
+git add public/admin/config.yml
+git commit -m "Add Netlify CMS config"
+git push
